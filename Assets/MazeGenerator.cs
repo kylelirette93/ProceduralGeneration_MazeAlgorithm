@@ -9,25 +9,22 @@ public class MazeGenerator : MonoBehaviour
     // Maze generation.
     public GameObject FloorTile;
     public GameObject WallTile;
-    public GameObject[,] Map;
+    GameObject[,] Map;
 
     // Maze properties.
     public int height;
     public int width;
-    int steps = 300;
     Vector3 startingPosition;
     Vector3 currentPosition;
+    bool[,] isVisited;
+    int steps = 100;
 
     private void Start()
     {
-        startingPosition = new Vector3(height / 2, width / 2);
-        GenerateMap(height, width, currentPosition);
-    }
-
-    private void Update()
-    {
-        currentPosition = RandomWalk(startingPosition);
-        GenerateMap(height, width, currentPosition);
+        // Starting position for map.
+        InitializeBoolMap(15, 15);
+        startingPosition = new Vector3(width / 2, 0, height / 2);
+        GenerateMap();
     }
 
     private Vector3 RandomWalk(Vector3 startingPos)
@@ -38,16 +35,16 @@ public class MazeGenerator : MonoBehaviour
             switch (randomDirection)
             {
                 case 1:
-                    nextMove = new Vector3(startingPos.x + 1, 0, startingPos.y);
+                    nextMove = new Vector3(startingPos.x + 1, 0, startingPos.z);
                     break;
                 case 2:
-                    nextMove = new Vector3(startingPos.x - 1, 0, startingPos.y);
+                    nextMove = new Vector3(startingPos.x - 1, 0, startingPos.z);
                     break;
                 case 3:
-                    nextMove = new Vector3(startingPos.x, 0, startingPos.y + 1);
+                    nextMove = new Vector3(startingPos.x, 0, startingPos.z + 1);
                     break;
                 case 4:
-                    nextMove = new Vector3(startingPos.x, 0, startingPos.y - 1);
+                    nextMove = new Vector3(startingPos.x, 0, startingPos.z - 1);
                     break;
             }
         return nextMove;
@@ -55,24 +52,27 @@ public class MazeGenerator : MonoBehaviour
 
     }
 
-    private void GenerateMap(int height, int width, Vector3 walkerPos)
+    private void InitializeBoolMap(int height, int width)
     {
-        GameObject[,] newMap = new GameObject[height, width];
-        for (int y = 0; y < newMap.GetLength(0); y++)
+        isVisited = new bool[height, width];
+        for (int y = 0; y < height; y++)
         {
-            for (int x = 0; x < newMap.GetLength(1); x++)
+            for (int x = 0; x < width; x++)
             {
-                if (walkerPos.x == x && walkerPos.y == y)
-                {
-                    GameObject floorTile = Instantiate(FloorTile, walkerPos, Quaternion.identity);
-                    newMap[y, x] = floorTile;
-                }
-                else
-                {
-                    GameObject wallTile = Instantiate(WallTile, new Vector3(x, 0, y), Quaternion.identity);
-                    newMap[y, x] = wallTile;
-                }
-                
+                isVisited[y, x] = false;
+            }
+        }
+    }
+
+    private void GenerateMap()
+    {
+        for (int i = 0; i < steps; i++)
+        {
+            startingPosition = RandomWalk(startingPosition);
+            if (isVisited[(int)startingPosition.x, (int)startingPosition.y] == false)
+            {
+                isVisited[(int)startingPosition.y, (int)startingPosition.x] = true;
+                GameObject floorTile = Instantiate(FloorTile, startingPosition, Quaternion.identity);
             }
         }
     }
